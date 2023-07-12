@@ -1,13 +1,14 @@
 import axios from 'axios';
 import fs from 'fs';
 import { join } from 'path';
+import config from '../config';
 
-const STORAGE = join(__dirname, '..', 'storage');
-
-const IMAGES_URLS = [
-  'https://4kwallpapers.com/images/walls/thumbs_3t/11871.png',
-  'https://tokens-data.1inch.io/images/0x503234f203fc7eb888eec8513210612a43cf6115.png',
-]
+const checkStorage = (path: string): void => {
+  const dir = join(__dirname, '..', path);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+}
 
 async function downloadImage(url: string, destinationPath: string): Promise<void> {
   try {
@@ -25,13 +26,15 @@ async function downloadImage(url: string, destinationPath: string): Promise<void
   }
 }
 
-async function downloadImages(urls: string[], destinationPath: string): Promise<void> {
+async function downloadImages(urls: string[]): Promise<void> {
+  const destinationPath = join(__dirname, '..', config.storageFolder);
+  checkStorage(config.storageFolder);
+
   try {
     const promises = urls.map((url, index) => {
       const name = `image_${index}`;
       const extension = url.split('.').pop();
       const destination = `${destinationPath}/${name}.${extension}`;
-
       return downloadImage(url, destination);
     });
 
@@ -43,7 +46,7 @@ async function downloadImages(urls: string[], destinationPath: string): Promise<
 
 async function main(): Promise<void> {
   try {
-    await downloadImages(IMAGES_URLS, STORAGE);
+    await downloadImages(config.imagesUrls);
   } catch (error: unknown | any) {
     console.error(error.message);
   }
